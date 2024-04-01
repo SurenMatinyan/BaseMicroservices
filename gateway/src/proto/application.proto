@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package application;
+
+service ApplicationService {
+  rpc CreateFile (Empty) returns (IRes);
+  rpc StoreData (Empty) returns (IRes);
+}
+
+message Empty {
+
+}
+
+message IRes {
+  int32 status = 1;
+  string message = 2;
+}

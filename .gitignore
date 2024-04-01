@@ -1,0 +1,8 @@
+gateway/dist
+gateway/node_modules
+
+application_service/dist
+application_service/node_modules
+
+notification_service/dist
+notification_service/node_modules

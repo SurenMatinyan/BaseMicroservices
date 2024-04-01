@@ -1,0 +1,82 @@
+version: '3'
+services:
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - application_service
+    networks:
+      - my-network
+
+  application_database:
+    build:
+      context: ./application_service/containers    
+      dockerfile: db.Dockerfile
+    ports: 
+      - "5432:5432"
+    networks:
+      - my-network
+
+ 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+    networks:
+      - my-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - my-network
+      
+
+  notification_service:
+    build:
+      context: ./notification_service
+      dockerfile: notification.Dockerfile
+    depends_on:
+      - kafka
+      - zookeeper
+    networks:
+      - my-network
+
+
+  application_service:
+    build:
+      context: ./application_service
+      dockerfile: app.Dockerfile
+    ports:
+      - "5000:5000"
+    depends_on:
+      - application_database
+      - kafka
+    networks:
+      - my-network
+
+
+
+networks:
+   my-network:
+    driver: bridge
+
+
+
+  
